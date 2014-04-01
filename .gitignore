@@ -2,3 +2,7 @@
 *.py[co]
 sahara
 savanna-tests-scripts
+deploy_config*
+env_config*
+test_config*
+iso/*
