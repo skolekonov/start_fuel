@@ -71,9 +71,9 @@ mashine_1_user=engineer
 mashine_1_role=Operator
 mashine_1_password=iKiePh4e
 
-environment_settings=env_config_1071_neutron_gre.cfg
+environment_settings=env_config_1071_neutron_vlan.cfg
 
-savanna_test_settings=test_config_neutron.conf
+savanna_test_settings=test_config_neutron_1.conf
 
 sahara_branch=master
 

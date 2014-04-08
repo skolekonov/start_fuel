@@ -25,11 +25,11 @@ env_ip=$2
 
 prepare_config_and_start_tests() {
     echo "Start tests"
-    upper_project_name = $(echo $1 | sed "s/[[:lower:]]/\u&/g")
+    upper_project_name=$(echo $1 | sed "s/[[:lower:]]/\u&/g")
     cp $savanna_test_settings sahara/$1/tests/integration/configs/itest.conf &&
     sed -i "s/OS_AUTH_URL =.*/OS_AUTH_URL = \"http:\/\/$env_ip:5000\/v2.0\"/" sahara/$1/tests/integration/configs/itest.conf &&
-    sed -i "s/$upper_project_name_HOST =.*/$upper_project_name_HOST = \"$env_ip\"/" sahara/$1/tests/integration/configs/itest.conf &&
-    cd sahara; tox -e integration -- concurrency=1 >> $OLDPWD/$private_bridge-savanna-tests.log
+    sed -i "s/${upper_project_name}_HOST =.*/${upper_project_name}_HOST = \'$env_ip\'/" sahara/$1/tests/integration/configs/itest.conf &&
+    cd sahara; tox -e integration -- --concurrency=1 >> $OLDPWD/$private_bridge-savanna-tests.log
     check_return_code_after_command_execution $? "$1 tests failure"
     cd $OLDPWD
     echo_ok
@@ -41,8 +41,14 @@ if [ -f $private_bridge-savanna-tests.log ]; then
 fi
 
 if [ ! -d sahara ]; then
-    git clone https://github.com/openstack/sahara.git -b $sahara_branch >>/dev/null
+    additional_parameters=''
+    if [ ! -z $sahara_branch ]; then additional_parameters="-b $sahara_branch"; fi
+    git clone https://github.com/openstack/sahara.git $additional_parameters >>/dev/null
     check_return_code_after_command_execution $? "Fail while clone savanna repository"
+    if [ ! -z $sahara_commit_id ]; then
+        cd sahara && git checkout $sahara_commit_id && cd $OLDPWD;
+        check_return_code_after_command_execution $? "Fail while checkout savanna repository";
+    fi
 fi
 
 

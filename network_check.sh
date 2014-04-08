@@ -40,6 +40,8 @@ create_custom_network() {
 	if [ ! -f /etc/network/interfaces ]; then sudo cp /etc/network/interfaces.sample /etc/network/interfaces 2>/dev/null; fi
 	if [ -f /etc/network/interfaces.new ]; then sudo rm /etc/network/interfaces.new; fi
  	if [ -f /etc/network/interfaces.old ]; then sudo rm /etc/network/interfaces.old; fi
+ 	sudo touch /etc/network/interfaces.new
+ 	sudo chmod 666 /etc/network/interfaces.new
 	sudo sed 's/eth0/br19/g' /etc/network/interfaces > /etc/network/interfaces.new
 	sudo mv /etc/network/interfaces /etc/network/interfaces.old
 	sudo mv /etc/network/interfaces.new /etc/network/interfaces

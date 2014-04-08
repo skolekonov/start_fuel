@@ -27,14 +27,11 @@ name="${vm_name_prefix}worker-$private_bridge"
 echo -n "Install worker nodes... "
 sudo screen -dmS $name-1 virt-install --connect qemu:///system --virt-type kvm -n $name-1 -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-1" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
 await_vm_status name-1 "работает"
-sudo virsh autostart $name-1 1>dev/null
 if $HA_mode; then
     sudo screen -dmS $name-2 virt-install --connect qemu:///system --virt-type kvm -n $name-2 -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-2" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
     await_vm_status name-2 "работает"
-    sudo virsh autostart $name-2 1>dev/null
     sudo screen -dmS $name-3 virt-install --connect qemu:///system --virt-type kvm -n $name-3 -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-3" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
     await_vm_status name-3 "работает"
-    sudo virsh autostart $name-3 1>dev/null
 fi
 echo "OK"
 

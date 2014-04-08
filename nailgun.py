@@ -17,6 +17,7 @@
 """
 
 from ConfigParser import SafeConfigParser
+import libvirt
 from sys import argv
 import time
 import json
@@ -116,9 +117,9 @@ def create_environment():
 
     #   Update network
     default_networks = client.get_networks(cluster_id)
-    print default_networks
+
     networks = json.loads(cluster_settings['networks'])
-    print default_networks
+
 
     if cluster_settings['net_provider'] == 'neutron':
         change_dict = networks.get('L2', {})
@@ -128,7 +129,7 @@ def create_environment():
 
         change_dict = networks.get('net04_ext_L3', {})
         for key, value in change_dict.items():
-            print "NET PARAM, \n{}, {} \n".format(key, value)
+
             default_networks['neutron_parameters']['predefined_networks'][
                 'net04_ext']['L3'][key] = value
 
@@ -141,7 +142,7 @@ def create_environment():
         change_dict = networks.get(net['name'], {})
         for key, value in change_dict.items():
             net[key] = value
-    print default_networks
+
     client.update_network(cluster_id, default_networks, all_set=True)
 
 
@@ -181,6 +182,11 @@ def await_deploy():
     notif_count = 0
     done_deploy = 0
     while True:
+
+        conn = libvirt.open("qemu:///system")
+        for domain_name in conn.listDefinedDomains():
+            conn.lookupByName(domain_name).create()
+
         list_notification = client.get_notifications()
         if len(list_notification) > notif_count:
             for notification in list_notification[notif_count:]:
@@ -219,8 +225,8 @@ if __name__ == '__main__':
     fuel_ip = argv[2]
     cluster_settings = dict(parser.items('cluster'))
 
-    #create_environment()
+    create_environment()
 
-    #deploy_environment()
+    deploy_environment()
 
-    #await_deploy()
+    await_deploy()

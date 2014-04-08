@@ -43,7 +43,7 @@ is_product_vm_operational() {
 
     for line in $result; do
         IFS="${OIFS}"
-        if [[ $line == *notice:\ Finished\ catalog\ run\ in* ]]; then
+        if [[ $line == *otice:\ Finished\ catalog\ run\ in* ]]; then
             IFS="${NIFS}"
             echo "Waiting for Fuel Master install... OK"
             return 0;

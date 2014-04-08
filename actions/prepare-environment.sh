@@ -62,10 +62,34 @@ echo -n "Checking for ipmitool... "
 ipmitool -V >/dev/null 2>&1 || { echo >&2 "'ipmitool' is not available in the path, but it's required. Likely, ipmitool is not installed. Aborting."; exit 1; }
 echo_ok
 
-# Check for ISO image to be available
+# Check for master Fuel ISO image to be available
 echo -n "Checking for Mirantis OpenStack ISO image... "
 if [ -z $iso_path ]; then
     echo "Mirantis OpenStack image is not found. Please download it and put under 'iso' directory."
+    exit 1
+fi
+echo_ok
+
+# Check for environment settings to be available
+echo -n "Checking for environment settings... "
+if [ ! -f $environment_settings ]; then
+    echo "Environment settings is not found. Please download it and put under 'iso' directory."
+    exit 1
+fi
+echo_ok
+
+# Check for savanna ISO settings to be available
+echo -n "Checking for ISO settings... "
+if [ ! -f iso_settings.py ]; then
+    echo "ISO settings is not found. Please download it and put under 'iso' directory."
+    exit 1
+fi
+echo_ok
+
+# Check for savanna tests settings to be available
+echo -n "Checking for savanna tests settings... "
+if [ ! -f $savanna_test_settings ]; then
+    echo "Savanna tests settings is not found. Please download it and put under 'iso' directory."
     exit 1
 fi
 echo_ok

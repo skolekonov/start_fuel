@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 #    Copyright 2014 Mirantis, Inc.
 #
@@ -32,20 +32,20 @@ source $config
 ./actions/prepare-environment.sh $config || exit 1
 
 # Create and launch master node
-#./actions/master-node-create-and-install.sh $config || exit 1
+sudo ./actions/master-node-create-and-install.sh $config || exit 1
 
 # Create and launch slave nodes
 #
-# ./actions/slave-nodes-create-and-boot.sh $config || exit 1
+sudo ./actions/slave-nodes-create-and-boot.sh $config || exit 1
 
 # Create and deploy environment
-#python nailgun.py $environment_settings $vm_master_ip || exit 1
+python nailgun.py $environment_settings $vm_master_ip || exit 1
 
 # Save environment ip
 env_ip=$(python -c "import nailgun; nailgun.return_controller_ip(\"$environment_settings\", \"$vm_master_ip\")") || exit 1
 
 # Add Savanna ISO for tests
-#./actions/add_savanna_iso.sh $env_ip || exit 1
+./actions/add_savanna_iso.sh $env_ip || exit 1
 
 # Run Savanna Tests
 ./actions/start_tests.sh $config $env_ip || exit 1
