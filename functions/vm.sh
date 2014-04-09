@@ -36,12 +36,11 @@ await_vm_status() {
 }
 
 start_vm() {
-    vm_state=$(virsh domstate $1)
-    check_return_code_after_command_execution $? "virtual machine $1 not found"
-    if [ $vm_state == "выключен" ]
+    vm_state=$(virsh domstate $1 2>/dev/null; check_return_code_after_command_execution "$?" "vm $1 not fount")
+    if [ "$state" == "выключен" -o  "$state" == "shut off" ]
     then
         virsh start $1
-        await_vm_status "работает" $1
+        await_vm_status $1 "работает"
     else
         echo
         echo "virtual machine $1 already started"
@@ -49,12 +48,11 @@ start_vm() {
 }
 
 shutdown_vm() {
-    vm_state=$(virsh domstate $1)
-    check_return_code_after_command_execution $? "virtual machine $1 not found"
-    if [ $vm_state == "работает" ]
+    vm_state=$(virsh domstate $1 2>/dev/null; check_return_code_after_command_execution "$?" "vm $1 not fount")
+    if [ "$state" == "работает" -o  "$state" == "running" ]
     then
         virsh shutdown $1
-        await_vm_status "выключен" $1
+        await_vm_status $1 "выключен"
     else
         echo
         echo "virtual machine $1 already stoped"
@@ -62,12 +60,11 @@ shutdown_vm() {
 }
 
 destroy_vm() {
-    vm_state=$(virsh domstate $1)
-    check_return_code_after_command_execution $? "virtual machine $1 not found"
-    if [ $vm_state == "работает" ]
+    vm_state=$(virsh domstate $1 2>/dev/null; check_return_code_after_command_execution "$?" "vm $1 not fount")
+    if [ "$state" == "работает" -o  "$state" == "running" ]
     then
         virsh destroy $1
-        await_vm_status "выключен" $1
+        await_vm_status $1 "выключен"
     else
         echo
         echo "virtual machine $1 already stoped"
@@ -75,10 +72,9 @@ destroy_vm() {
 }
 
 reboot_vm() {
-    vm_state=$(virsh domstate $1)
-    check_return_code_after_command_execution $? "virtual machine $1 not found"
+    vm_state=$(virsh domstate $1 2>/dev/null; check_return_code_after_command_execution "$?" "vm $1 not fount")
     virsh reboot $1
-    await_vm_status "работает" $1
+    await_vm_status $1 "работает"
 }
 
 edit_file_on_vm() {
