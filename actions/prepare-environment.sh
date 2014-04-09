@@ -37,6 +37,11 @@ echo -n "Checking for 'virt-manager'... "
 virt-manager --version >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install virt-manager -y >>install.log 2>&1; } || { echo >&2 "'virt-manager' is not available in the path, but it's required. Likely, virt-manager is not installed. Aborting."; exit 1; }
 echo_ok
 
+# Check for screen
+echo -n "Checking for 'screen'... "
+screen -v >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install screen -y >>install.log 2>&1; } || { echo >&2 "'virt-manager' is not available in the path, but it's required. Likely, virt-manager is not installed. Aborting."; exit 1; }
+echo_ok
+
 # Check for virt-tools
 echo -n "Checking for 'virt-tools'... "
 virt-edit --version >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install libvirt-dev -y >>install.log 2>&1 && sudo apt-get install libguestfs-tools -y | tee -a install.log; } || { echo >&2 "'virt-tools' is not available in the path, but it's required. Likely, virt-tools is not installed. Aborting."; exit 1; }
