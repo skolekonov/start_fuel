@@ -27,39 +27,34 @@
 source $1
 source functions/resources.sh
 
-# Check for expect
-echo -n "Checking for 'expect'... "
-expect -v >/dev/null 2>&1 || { echo >&2 "'expect' is not available in the path, but it's required. Please install 'expect' package. Aborting."; exit 1; }
-echo_ok
-
 # Check for kvm
 echo -n "Checking for 'kvm'... "
-kvm --version >/dev/null 2>&1 || { echo >&2 "'kvm' is not available in the path, but it's required. Please install 'kvm' package. Aborting."; exit 1; }
+kvm --version >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install kvm -y >>install.log 2>&1; } || { echo >&2 "'kvm' is not available in the path, but it's required. Please install 'kvm' package. Aborting."; exit 1; }
 echo_ok
 
 # Check for virt-manager
 echo -n "Checking for 'virt-manager'... "
-virt-manager --version >/dev/null 2>&1 || { echo >&2 "'virt-manager' is not available in the path, but it's required. Likely, virt-manager is not installed. Aborting."; exit 1; }
+virt-manager --version >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install virt-manager -y >>install.log 2>&1; } || { echo >&2 "'virt-manager' is not available in the path, but it's required. Likely, virt-manager is not installed. Aborting."; exit 1; }
 echo_ok
 
 # Check for virt-tools
 echo -n "Checking for 'virt-tools'... "
-virt-edit --version >/dev/null 2>&1 || { echo >&2 "'virt-tools' is not available in the path, but it's required. Likely, virt-tools is not installed. Aborting."; exit 1; }
+virt-edit --version >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install libvirt-dev -y >>install.log 2>&1 && sudo apt-get install libguestfs-tools -y | tee -a install.log; } || { echo >&2 "'virt-tools' is not available in the path, but it's required. Likely, virt-tools is not installed. Aborting."; exit 1; }
 echo_ok
 
 # Check for guestfish
 echo -n "Checking for 'guestfish'... "
-guestfish --version >/dev/null 2>&1 || { echo >&2 "'guestfish' is not available in the path, but it's required. Likely, guestfish is not installed. Aborting."; exit 1; }
+guestfish --version >/dev/null 2>&1 ||  { sudo apt-get update >>install.log 2>&1 && sudo apt-get install guestfish -y >>install.log 2>&1; } || { echo >&2 "'guestfish' is not available in the path, but it's required. Likely, guestfish is not installed. Aborting."; exit 1; }
 echo_ok
 
 # Check for virsh
-echo -n "Checking for 'guestfish'... "
-virsh -v >/dev/null 2>&1 || { echo >&2 "'guestfish' is not available in the path, but it's required. Likely, guestfish is not installed. Aborting."; exit 1; }
+echo -n "Checking for 'virsh'... "
+virsh -v >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install libvirt-bin -y >>install.log 2>&1; } || { echo >&2 "'guestfish' is not available in the path, but it's required. Likely, guestfish is not installed. Aborting."; exit 1; }
 echo_ok
 
 # Check for ipmitool
 echo -n "Checking for ipmitool... "
-ipmitool -V >/dev/null 2>&1 || { echo >&2 "'ipmitool' is not available in the path, but it's required. Likely, ipmitool is not installed. Aborting."; exit 1; }
+ipmitool -V >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install ipmitool -y >>install.log 2>&1; } || { echo >&2 "'ipmitool' is not available in the path, but it's required. Likely, ipmitool is not installed. Aborting."; exit 1; }
 echo_ok
 
 # Check for master Fuel ISO image to be available
