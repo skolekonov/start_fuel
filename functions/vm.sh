@@ -22,14 +22,14 @@ await_vm_status() {
     counter=0
     max_count=12
     sec_state=''
-    if [ $2 == "работает" ]; then sec_state='Running';
-    elif [ $2 == "выключен" ]; then sec_state='Shutoff';
-    elif [ $2 == "Приостановлена" ]; then sec_state='Paused';
+    if [ $2 == "работает" ]; then sec_state='running';
+    elif [ $2 == "выключен" ]; then sec_state='shut off';
+    elif [ $2 == "Приостановлена" ]; then sec_state='paused';
     fi
     while [  $counter -lt $max_count ]; do
         sleep 5
         vm_state=$(virsh domstate $1 2>/dev/null; check_return_code_after_command_execution "$?" "vm $1 not fount")
-        if [ ! -z $vm_state ] && [ $vm_state == $2 -o $vm_state == $sec_state ]; then break; fi
+        if [ ! -z "$vm_state" ] && [ "$vm_state" == $2 -o "$vm_state" == $sec_state ]; then break; fi
         if [ $counter == $max_count ]; then echo -e "\nvirtual machine $1 didn't pass into $2 status of 2 minutes"; exit 1; fi
         let counter=counter+1
     done

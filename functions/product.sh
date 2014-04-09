@@ -67,7 +67,7 @@ wait_for_product_vm_to_install() {
         let counter=counter+1
         state=`virsh domstate $name`
         check_return_code_after_command_execution $? "virtual machine $1 not found"
-        if [ $state == "выключен" -o  $state == "shutoff" ]
+        if [ "$state" == "выключен" -o  "$state" == "shut off" ]
         then
             edit_file_on_vm $name /etc/sysconfig/network-scripts/ifcfg-eth0 "s/^IPADDR.*/IPADDR=$vm_master_ip/"
             edit_file_on_vm $name /etc/sysconfig/network-scripts/ifcfg-eth0 "s/^NETMASK.*/NETMASK=$vm_master_netmask/"
