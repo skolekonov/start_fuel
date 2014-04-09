@@ -39,7 +39,7 @@ echo_ok
 
 # Check for screen
 echo -n "Checking for 'screen'... "
-screen -v >/dev/null 2>&1 || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install screen -y >>install.log 2>&1; } || { echo >&2 "'virt-manager' is not available in the path, but it's required. Likely, virt-manager is not installed. Aborting."; exit 1; }
+screen -v >/dev/null 2>&1; if [ $? == 1 ]; then  echo -n; fi || { sudo apt-get update >>install.log 2>&1 && sudo apt-get install screen -y >>install.log 2>&1; } || { echo >&2 "'virt-manager' is not available in the path, but it's required. Likely, virt-manager is not installed. Aborting."; exit 1; }
 echo_ok
 
 # Check for virt-tools

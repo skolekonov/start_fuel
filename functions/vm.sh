@@ -22,7 +22,7 @@ await_vm_status() {
     counter=0
     max_count=12
     sec_state=''
-    if [ $2 == "работает" ]; then $sec_state='Running';
+    if [ $2 == "работает" ]; then sec_state='Running';
     elif [ $2 == "выключен" ]; then sec_state='Shutoff';
     elif [ $2 == "Приостановлена" ]; then sec_state='Paused';
     fi
