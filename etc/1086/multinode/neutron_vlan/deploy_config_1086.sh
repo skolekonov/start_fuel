@@ -44,9 +44,6 @@ vm_master_disk_gb=30
 vm_master_ip=10.20.0.2
 vm_master_gateway=10.20.0.1
 vm_master_netmask=255.255.255.0
-vm_master_username=root
-vm_master_password=r00tme
-vm_master_prompt='root@fuel ~]#'
 
 # Slave node settings
 vm_slave_cpu_cores=2
@@ -71,7 +68,7 @@ mashine_1_user=engineer
 mashine_1_role=Operator
 mashine_1_password=iKiePh4e
 
-environment_settings=env_config_1086_neutron_gre.cfg
+environment_settings=env_config_1086_neutron_vlan.cfg
 
 savanna_test_settings=test_config_neutron.conf
 

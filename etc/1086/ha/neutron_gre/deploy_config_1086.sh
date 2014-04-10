@@ -15,7 +15,7 @@
 #    under the License.
 
 #
-private_bridge=br1071
+private_bridge=br1086
 
 #
 public_bridge=br19
@@ -30,7 +30,7 @@ iso_path=`ls -1t iso/*.iso 2>/dev/null | head -1`
 vm_name_prefix=fuel-
 
 #
-HA_mode=false
+HA_mode=true
 
 # Master node settings
 vm_master_cpu_cores=1
@@ -41,12 +41,9 @@ vm_master_disk_gb=30
 # If you modify networking params for master node during the boot time
 #   (i.e. if you pressed Tab in a boot loader and modified params),
 #   make sure that these values reflect that change.
-vm_master_ip=10.20.1.2
-vm_master_gateway=10.20.1.1
+vm_master_ip=10.20.0.2
+vm_master_gateway=10.20.0.1
 vm_master_netmask=255.255.255.0
-vm_master_username=root
-vm_master_password=r00tme
-vm_master_prompt='root@fuel ~]#'
 
 # Slave node settings
 vm_slave_cpu_cores=2
@@ -55,26 +52,24 @@ vm_slave_disk_gb=50
 
 # network settings for Fuel Master
 naily="mnbs_internal_interface=eth0
-mnbs_internal_ipaddress=10.20.1.2
+mnbs_internal_ipaddress=10.20.0.2
 mnbs_internal_netmask=255.255.255.0
-mnbs_static_pool_start=10.20.1.130
-mnbs_static_pool_end=10.20.1.250
-mnbs_dhcp_pool_start=10.20.1.10
-mnbs_dhcp_pool_end=10.20.1.120"
+mnbs_static_pool_start=10.20.0.130
+mnbs_static_pool_end=10.20.0.250
+mnbs_dhcp_pool_start=10.20.0.10
+mnbs_dhcp_pool_end=10.20.0.120"
 
 # Settings for ipmi mashines
 
 mashines_count=1
 
-mashine_1_host=srv21-srt-ipmi.srt.mirantis.net
+mashine_1_host=srv23-srt-ipmi.srt.mirantis.net
 mashine_1_user=engineer
 mashine_1_role=Operator
 mashine_1_password=iKiePh4e
 
-environment_settings=env_config_1071_neutron_vlan.cfg
+environment_settings=env_config_1086_neutron_gre.cfg
 
-savanna_test_settings=test_config_neutron_1.conf
+savanna_test_settings=test_config_neutron.conf
 
 sahara_branch=master
-
-

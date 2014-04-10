@@ -1,10 +1,10 @@
 .idea
 *.py[co]
-sahara
-savanna-tests-scripts
-deploy_config*
-env_config*
-test_config*
-iso_settings.py
+/sahara
+/savanna-tests-scripts
+/deploy_config*
+/env_config*
+/test_config*
+/iso_settings.py
 *.log
-iso/*
+/iso/*
