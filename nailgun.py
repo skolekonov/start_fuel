@@ -95,7 +95,7 @@ def create_environment():
     for node in client.list_nodes():
 
         if (((k == 0 and cluster_settings['config_mode'] == "multinode") or
-            (k < 3 and cluster_settings['config_mode'] == "ha")) and
+            (k < 3 and cluster_settings['config_mode'] == "ha_compact")) and
                 node['manufacturer'] == 'KVM'):
             role = cluster_settings['controller_role'].split()
             k += 1
