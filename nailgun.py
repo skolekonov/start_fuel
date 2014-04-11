@@ -179,24 +179,32 @@ def update_node_networks(client, node_id, interfaces_dict, raw_data=None):
 def await_deploy():
     client = fuel.NailgunClient(str(fuel_ip))
     cluster_id = client.get_cluster_id(cluster_settings['env_name'])
+    conn = libvirt.open("qemu:///system")
+    log_file = open('await_deploy.log', 'w')
     notif_count = 0
     done_deploy = 0
-    while True:
 
-        conn = libvirt.open("qemu:///system")
+    while True:
         for domain_name in conn.listDefinedDomains():
             conn.lookupByName(domain_name).create()
 
         list_notification = client.get_notifications()
+
         if len(list_notification) > notif_count:
+            log_file.write("{}\n{}".format(notif_count,
+                                           list_notification[notif_count:]))
             for notification in list_notification[notif_count:]:
+
                 if notification['cluster'] == cluster_id:
+
                     if notification['topic'] == 'error':
                         raise RuntimeError(notification['message'])
+
                     if notification['topic'] == 'done':
                         done_deploy = 1
                         print notification['message']
                         break
+
         if done_deploy:
             break
         notif_count = len(list_notification)

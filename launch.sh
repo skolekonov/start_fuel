@@ -35,7 +35,6 @@ source $config
 sudo ./actions/master-node-create-and-install.sh $config || exit 1
 
 # Create and launch slave nodes
-#
 sudo ./actions/slave-nodes-create-and-boot.sh $config || exit 1
 
 # Create and deploy environment
