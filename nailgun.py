@@ -66,7 +66,7 @@ def create_environment():
 
     for option in settings:
         section = False
-        if option in ('savanna', 'murano', 'ceilometer'):
+        if option in ('sahara', 'murano', 'ceilometer'):
             section = 'additional_components'
         if option in ('volumes_ceph', 'images_ceph', 'ephemeral_ceph',
                       'objects_ceph', 'osd_pool_size', 'volumes_lvm'):
@@ -120,23 +120,10 @@ def create_environment():
 
     networks = json.loads(cluster_settings['networks'])
 
-
     if cluster_settings['net_provider'] == 'neutron':
-        change_dict = networks.get('L2', {})
+        change_dict = networks.get('networking_parameters', {})
         for key, value in change_dict.items():
-            default_networks['neutron_parameters']['L2'][
-                'phys_nets'][key] = value
-
-        change_dict = networks.get('net04_ext_L3', {})
-        for key, value in change_dict.items():
-
-            default_networks['neutron_parameters']['predefined_networks'][
-                'net04_ext']['L3'][key] = value
-
-        change_dict = networks.get('net04_L3', {})
-        for key, value in change_dict.items():
-            default_networks['neutron_parameters']['predefined_networks'][
-                'net04']['L3'][key] = value
+            default_networks['networking_parameters'][key] = value
 
     for net in default_networks['networks']:
         change_dict = networks.get(net['name'], {})
@@ -191,8 +178,10 @@ def await_deploy():
         list_notification = client.get_notifications()
 
         if len(list_notification) > notif_count:
-            log_file.write("{}\n{}".format(notif_count,
+
+            log_file.write("{}\n{}\n".format(notif_count,
                                            list_notification[notif_count:]))
+
             for notification in list_notification[notif_count:]:
 
                 if notification['cluster'] == cluster_id:
@@ -207,8 +196,10 @@ def await_deploy():
 
         if done_deploy:
             break
+
         notif_count = len(list_notification)
-        time.sleep(60)
+
+        time.sleep(10)
 
 
 def return_controller_ip(config, fuel_ip):
@@ -238,3 +229,4 @@ if __name__ == '__main__':
     deploy_environment()
 
     await_deploy()
+

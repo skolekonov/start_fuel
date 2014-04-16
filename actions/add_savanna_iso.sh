@@ -27,7 +27,7 @@ if [ ! -d savanna-tests-scripts ]; then
 fi
 rm savanna-tests-scripts/settings.py >>/dev/null
 cp iso_settings.py savanna-tests-scripts/settings.py 1>>/dev/null &&
-python savanna-tests-scripts/prepare_for_tests.py $1 >>/dev/null
-check_return_code_after_command_execution $? "Fail while clone savanna_prepare repository"
+python savanna-tests-scripts/prepare_for_tests.py $1 1>>/dev/null
+check_return_code_after_command_execution $? "Fail while add savanna images to OpenStack"
 
 

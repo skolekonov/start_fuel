@@ -27,24 +27,30 @@ else
 fi
 
 source $config
+source functions/resources.sh
 
 # Prepare the host system
-./actions/prepare-environment.sh $config || exit 1
+./actions/prepare-environment.sh $config
+check_return_code_after_command_execution $? "prepare environment is failed"
 
 # Create and launch master node
-sudo ./actions/master-node-create-and-install.sh $config || exit 1
+sudo ./actions/master-node-create-and-install.sh $config
+check_return_code_after_command_execution $? "Create or install master node is failed"
 
 # Create and launch slave nodes
-sudo ./actions/slave-nodes-create-and-boot.sh $config || exit 1
+sudo ./actions/slave-nodes-create-and-boot.sh $config
+check_return_code_after_command_execution $? "Create or boot worker nodes is failed"
 
 # Create and deploy environment
-python nailgun.py $environment_settings $vm_master_ip || exit 1
+python nailgun.py $environment_settings $vm_master_ip
+check_return_code_after_command_execution $? "Create of deploy OpenStack environment is failed"
 
 # Save environment ip
-env_ip=$(python -c "import nailgun; nailgun.return_controller_ip(\"$environment_settings\", \"$vm_master_ip\")") || exit 1
+env_ip=$(python -c "import nailgun; nailgun.return_controller_ip(\"$environment_settings\", \"$vm_master_ip\")")
+check_return_code_after_command_execution $? "IP of OpenStack environment not obtained"
 
 # Add Savanna ISO for tests
 ./actions/add_savanna_iso.sh $env_ip || exit 1
 
 # Run Savanna Tests
-./actions/start_tests.sh $config $env_ip || exit 1
+./actions/start_tests.sh $config $env_ip

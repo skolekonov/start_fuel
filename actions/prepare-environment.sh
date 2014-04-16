@@ -73,7 +73,7 @@ echo_ok
 # Check for environment settings to be available
 echo -n "Checking for environment settings... "
 if [ ! -f $environment_settings ]; then
-    echo "Environment settings is not found. Please download it and put under 'iso' directory."
+    echo "Environment settings is not found."
     exit 1
 fi
 echo_ok
@@ -81,7 +81,7 @@ echo_ok
 # Check for savanna ISO settings to be available
 echo -n "Checking for ISO settings... "
 if [ ! -f iso_settings.py ]; then
-    echo "ISO settings is not found. Please download it and put under 'iso' directory."
+    echo "ISO settings is not found."
     exit 1
 fi
 echo_ok
@@ -89,7 +89,7 @@ echo_ok
 # Check for savanna tests settings to be available
 echo -n "Checking for savanna tests settings... "
 if [ ! -f $savanna_test_settings ]; then
-    echo "Savanna tests settings is not found. Please download it and put under 'iso' directory."
+    echo "Savanna tests settings is not found."
     exit 1
 fi
 echo_ok

@@ -25,18 +25,17 @@ env_ip=$2
 
 prepare_config_and_start_tests() {
     echo "Start tests"
-    upper_project_name=$(echo $1 | sed "s/[[:lower:]]/\u&/g")
-    cp $savanna_test_settings sahara/$1/tests/integration/configs/itest.conf &&
-    sed -i "s/OS_AUTH_URL =.*/OS_AUTH_URL = \"http:\/\/$env_ip:5000\/v2.0\"/" sahara/$1/tests/integration/configs/itest.conf &&
-    sed -i "s/${upper_project_name}_HOST =.*/${upper_project_name}_HOST = \'$env_ip\'/" sahara/$1/tests/integration/configs/itest.conf &&
-    cd sahara; tox -e integration -- --concurrency=1 >> $OLDPWD/$private_bridge-savanna-tests.log
-    check_return_code_after_command_execution $? "$1 tests failure"
+    cp $savanna_test_settings sahara/sahara/tests/integration/configs/itest.conf &&
+    sed -i "s/OS_AUTH_URL =.*/OS_AUTH_URL = \"http:\/\/$env_ip:5000\/v2.0\"/" sahara/sahara/tests/integration/configs/itest.conf &&
+    sed -i "s/SAHARA_HOST =.*/SAHARA_HOST_HOST = \'$env_ip\'/" sahara/sahara/tests/integration/configs/itest.conf &&
+    cd sahara && tox -e integration -- --concurrency=1 >> $OLDPWD/$private_bridge-savanna-tests.log
+    check_return_code_after_command_execution $? "sahara tests failure"
     cd $OLDPWD
     echo_ok
 }
 
-if [ -f $private_bridge-savanna-tests.log ]; then
-    rm $private_bridge-savanna-tests.log; touch $private_bridge-savanna-tests.log
+if [ -f $private_bridge-sahara-tests.log ]; then
+    rm $private_bridge-sahara-tests.log; touch $private_bridge-sahara-tests.log
     check_return_code_after_command_execution $? "Fail while delete and create log file for tests"
 fi
 
@@ -51,9 +50,4 @@ if [ ! -d sahara ]; then
     fi
 fi
 
-
-if [ -d sahara/savanna ]; then
-    prepare_config_and_start_tests "savanna"
-elif [ -d sahara/sahara ]; then
-    prepare_config_and_start_tests "sahara"
-fi
+prepare_config_and_start_tests
