@@ -133,10 +133,9 @@ def create_environment():
 
     networks = json.loads(cluster_settings['networks'])
 
-    if cluster_settings['net_provider'] == 'neutron':
-        change_dict = networks.get('networking_parameters', {})
-        for key, value in change_dict.items():
-            default_networks['networking_parameters'][key] = value
+    change_dict = networks.get('networking_parameters', {})
+    for key, value in change_dict.items():
+        default_networks['networking_parameters'][key] = value
 
     for net in default_networks['networks']:
         change_dict = networks.get(net['name'], {})
