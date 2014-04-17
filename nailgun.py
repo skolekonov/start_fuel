@@ -29,9 +29,11 @@ import python.nailgun_client as fuel
 def create_environment():
 
     #   Connect to Fuel Main Server
+
     client = fuel.NailgunClient(str(fuel_ip))
 
     #   Clean Fuel cluster
+
     for cluster in client.list_clusters():
         client.delete_cluster(cluster['id'])
         while True:
@@ -47,6 +49,7 @@ def create_environment():
             time.sleep(1)
 
     #   Create cluster
+
     release_id = client.get_release_id(cluster_settings['release_name'])
 
     data = {"name": cluster_settings['env_name'], "release": release_id,
@@ -57,7 +60,7 @@ def create_environment():
 
     client.create_cluster(data)
 
-    #   Update cluster configuration, add
+    #   Update cluster configuration
 
     cluster_id = client.get_cluster_id(cluster_settings['env_name'])
     attributes = client.get_cluster_attributes(cluster_id)
@@ -76,8 +79,15 @@ def create_environment():
 
     hpv_data = attributes['editable']['common']['libvirt_type']
     hpv_data['value'] = str(cluster_settings['virt_type'])
-    attributes['editable']['common']['debug']['value'] = bool(
-        cluster_settings['debug'])
+
+    debug = cluster_settings.get('debug', False)
+    auto_assign = cluster_settings.get('auto_assign_floating_ip', False)
+    nova_quota = cluster_settings.get('nova_quota', False)
+
+    attributes['editable']['common']['debug']['value'] = bool(debug)
+    attributes['editable']['common'][
+        'auto_assign_floating_ip']['value'] = bool(auto_assign)
+    attributes['editable']['common']['nova_quota']['value'] = bool(nova_quota)
 
     client.update_cluster_attributes(cluster_id, attributes)
 
@@ -91,6 +101,7 @@ def create_environment():
         time.sleep(5)
 
     #   Add all available nodes to cluster
+
     k = 0
     for node in client.list_nodes():
 
@@ -111,11 +122,13 @@ def create_environment():
         client.update_node(node['id'], data)
 
     #   Move networks on interfaces
+
     for node in client.list_cluster_nodes(cluster_id):
         networks_dict = json.loads(cluster_settings['interfaces'])
         update_node_networks(client, node['id'], networks_dict)
 
     #   Update network
+
     default_networks = client.get_networks(cluster_id)
 
     networks = json.loads(cluster_settings['networks'])
@@ -140,7 +153,9 @@ def deploy_environment():
 
 
 def update_node_networks(client, node_id, interfaces_dict, raw_data=None):
+
     # fuelweb_admin is always on eth0
+
     interfaces_dict['eth0'] = interfaces_dict.get('eth0', [])
     if 'fuelweb_admin' not in interfaces_dict['eth0']:
         interfaces_dict['eth0'].append('fuelweb_admin')
@@ -229,4 +244,3 @@ if __name__ == '__main__':
     deploy_environment()
 
     await_deploy()
-
