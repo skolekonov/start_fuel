@@ -18,8 +18,8 @@ import logging
 
 from http import HTTPClient
 
-OPENSTACK_RELEASE_CENTOS = 'Havana on CentOS 6.4'
-OPENSTACK_RELEASE_UBUNTU = 'Havana on Ubuntu 12.04'
+OPENSTACK_RELEASE_CENTOS = 'Icehouse on CentOS 6.5'
+OPENSTACK_RELEASE_UBUNTU = 'Icehouse on Ubuntu 12.04'
 OPENSTACK_RELEASE = OPENSTACK_RELEASE_CENTOS
 
 def debug(logger):
