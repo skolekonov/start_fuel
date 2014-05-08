@@ -28,7 +28,7 @@ prepare_config_and_start_tests() {
     cp $savanna_test_settings sahara/sahara/tests/integration/configs/itest.conf &&
     sed -i "s/OS_AUTH_URL =.*/OS_AUTH_URL = \"http:\/\/$env_ip:5000\/v2.0\"/" sahara/sahara/tests/integration/configs/itest.conf &&
     sed -i "s/SAHARA_HOST =.*/SAHARA_HOST = \'$env_ip\'/" sahara/sahara/tests/integration/configs/itest.conf &&
-    cd sahara && tox -e integration -- --concurrency=1 >> $OLDPWD/$private_bridge-savanna-tests.log
+    cd sahara && tox -e integration -- vanilla1 >> $OLDPWD/$private_bridge-savanna-tests.log
     check_return_code_after_command_execution $? "sahara tests failure"
     cd $OLDPWD
     echo_ok

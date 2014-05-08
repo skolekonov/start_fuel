@@ -80,14 +80,14 @@ def create_environment():
     hpv_data = attributes['editable']['common']['libvirt_type']
     hpv_data['value'] = str(cluster_settings['virt_type'])
 
-    debug = cluster_settings.get('debug', False)
-    auto_assign = cluster_settings.get('auto_assign_floating_ip', False)
-    nova_quota = cluster_settings.get('nova_quota', False)
+    debug = cluster_settings.get('debug', 'false')
+    auto_assign = cluster_settings.get('auto_assign_floating_ip', 'false')
+    nova_quota = cluster_settings.get('nova_quota', 'false')
 
-    attributes['editable']['common']['debug']['value'] = bool(debug)
+    attributes['editable']['common']['debug']['value'] = json.loads(debug)
     attributes['editable']['common'][
-        'auto_assign_floating_ip']['value'] = bool(auto_assign)
-    attributes['editable']['common']['nova_quota']['value'] = bool(nova_quota)
+        'auto_assign_floating_ip']['value'] = json.loads(auto_assign)
+    attributes['editable']['common']['nova_quota']['value'] = json.loads(nova_quota)
 
     client.update_cluster_attributes(cluster_id, attributes)
 

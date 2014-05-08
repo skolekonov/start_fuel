@@ -73,3 +73,5 @@ environment_settings=env_config_1086_neutron_vlan.cfg
 savanna_test_settings=test_config_neutron.conf
 
 sahara_branch=master
+
+sahara_commit_id=c3fa215e642b2ddef06c58144bfbb47074adb189
