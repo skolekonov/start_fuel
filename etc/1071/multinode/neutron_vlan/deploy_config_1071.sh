@@ -77,6 +77,6 @@ savanna_test_settings=test_config_neutron.conf
 
 sahara_branch=master
 
-sahara_commit_id=c3fa215e642b2ddef06c58144bfbb47074adb189
+sahara_commit_id=a170a05bc6dce1462a24622c55f74fb6e39db884
 
 
