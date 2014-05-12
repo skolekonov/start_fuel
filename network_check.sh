@@ -34,8 +34,8 @@ create_custom_network() {
 
 	sudo ip addr del 172.18.78.15 dev eth0
 	sudo ip addr add 172.18.78.15/25 dev br19
-	sudo ip addr add 10.20.0.200/24 dev br1071
-	sudo ip addr add 10.20.1.200/24 dev br1086
+	sudo ip addr add 10.20.1.200/24 dev br1071
+	sudo ip addr add 10.20.0.200/24 dev br1086
 
 	if [ ! -f /etc/network/interfaces ]; then sudo cp /etc/network/interfaces.sample /etc/network/interfaces 2>/dev/null; fi
 	if [ -f /etc/network/interfaces.new ]; then sudo rm /etc/network/interfaces.new; fi
