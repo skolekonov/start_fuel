@@ -17,6 +17,7 @@ do
 done
 		
 create_custom_network() {
+    ip=$(ip addr show | grep "global eth0" | awk '{print $2}')
 	sudo ip link add link eth0 name br19 type bridge
 	sudo ip link add link eth0 name eth0.1071 type vlan id 1071
 	sudo ip link add link eth0 name eth0.1086 type vlan id 1086
@@ -32,8 +33,8 @@ create_custom_network() {
 	sudo ip link set br1071 up
 	sudo ip link set br1086 up
 
-	sudo ip addr del 172.18.78.15 dev eth0
-	sudo ip addr add 172.18.78.15/25 dev br19
+	sudo ip addr del $ip dev eth0
+	sudo ip addr add $ip dev br19
 	sudo ip addr add 10.20.1.200/24 dev br1071
 	sudo ip addr add 10.20.0.200/24 dev br1086
 
@@ -51,6 +52,7 @@ create_custom_network() {
 }
 
 create_default_network() {
+    ip=$(ip addr show | grep "global br19" | awk '{print $2}')
 	sudo rm /etc/network/interfaces 2>/dev/null
 	sudo cp /etc/network/interfaces.sample /etc/network/interfaces 2>/dev/null
 	sudo ip link del br19 2>/dev/null
@@ -59,7 +61,7 @@ create_default_network() {
 	sudo ip link del br1071 2>/dev/null
 	sudo ip link del br1086 2>/dev/null
 	sudo service networking restart
-	sudo ip addr add 172.18.78.15/25 dev eth0
+	sudo ip addr add $ip dev eth0
 	sudo service networking restart
 	sudo ip ro add default via 172.18.78.1 2>/dev/null
 }
