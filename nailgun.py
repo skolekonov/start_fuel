@@ -87,13 +87,14 @@ def create_environment():
     attributes['editable']['common']['debug']['value'] = json.loads(debug)
     attributes['editable']['common'][
         'auto_assign_floating_ip']['value'] = json.loads(auto_assign)
-    attributes['editable']['common']['nova_quota']['value'] = json.loads(nova_quota)
+    attributes['editable']['common']['nova_quota']['value'] = \
+        json.loads(nova_quota)
 
     client.update_cluster_attributes(cluster_id, attributes)
 
     counter = 0
     while True:
-        if str(len(client.list_nodes())) == cluster_settings['node_count']:
+        if str(len(client.list_nodes())) >= cluster_settings['node_count']:
             break
         counter += 5
         if counter > 600:
@@ -102,21 +103,16 @@ def create_environment():
 
     #   Add all available nodes to cluster
 
-    k = 0
-    for node in client.list_nodes():
+    for node_name, params in json.loads(cluster_settings['node_roles']).items():
 
-        if (((k == 0 and cluster_settings['config_mode'] == "multinode") or
-            (k < 3 and cluster_settings['config_mode'] == "ha_compact")) and
-                node['manufacturer'] == 'KVM'):
-            role = cluster_settings['controller_role'].split()
-            k += 1
-        else:
-            role = cluster_settings['compute_role'].split()
+        node = next(k for k in client.list_nodes()
+                    if k['manufacturer'] == params['manufacturer']
+        and not k['cluster'] and k['online'])
 
         data = {"cluster_id": str(cluster_id),
-                "pending_roles": role,
+                "pending_roles": params['roles'],
                 "pending_addition": True,
-                "name": "NODE_"+role[0]+"_"+str(k),
+                "name": node_name,
                 }
 
         client.update_node(node['id'], data)
@@ -226,7 +222,8 @@ def return_controller_ip(config, fuel_ip):
     client = fuel.NailgunClient(str(fuel_ip))
     cluster_id = client.get_cluster_id(cluster_settings['env_name'])
 
-    notification = [q for q in client.get_notifications() if q['topic'] == "done" and q['cluster'] == cluster_id]
+    notification = [q for q in client.get_notifications()
+                    if q['topic'] == "done" and q['cluster'] == cluster_id]
     print [word for word in notification[0][
         'message'].split() if word.startswith('http://')][0][7:-1]
 
