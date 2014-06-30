@@ -25,15 +25,16 @@ source functions/vm.sh
 name="${vm_name_prefix}worker-$private_bridge"
 
 echo -n "Install worker nodes... "
-sudo screen -dmS $name-1 virt-install --connect qemu:///system --virt-type kvm -n $name-1 -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-1" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
-await_vm_status name-1 "работает"
-if $HA_mode; then
-    sudo screen -dmS $name-2 virt-install --connect qemu:///system --virt-type kvm -n $name-2 -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-2" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
-    await_vm_status name-2 "работает"
-    sudo screen -dmS $name-3 virt-install --connect qemu:///system --virt-type kvm -n $name-3 -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-3" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
-    await_vm_status name-3 "работает"
-fi
-echo "OK"
+
+# Start KVM nodes
+
+for counter in $(eval echo {1..$kvm_nodes_count}); do
+    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-$counter" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
+    await_vm_status $name-$counter "работает"
+    echo "OK"
+done
+
+# Reboot IPMI nodes
 
 for counter in $(eval echo {1..$mashines_count}); do
     type="mashine_$counter"

@@ -94,7 +94,18 @@ def create_environment():
 
     counter = 0
     while True:
-        if str(len(client.list_nodes())) >= cluster_settings['node_count']:
+
+        actual_kvm_count = len([k for k in client.list_nodes()
+                    if not k['cluster'] and k['online']
+            and k['status'] == 'discover' and k['manufacturer'] == 'KVM'])
+
+        actual_machines_count = len([k for k in client.list_nodes()
+                    if not k['cluster'] and k['online']
+            and k['status'] == 'discover'
+        and k['manufacturer'] == 'Supermicro'])
+
+        if actual_kvm_count >= int(kvm_count) \
+            and actual_machines_count >= int(machines_count):
             break
         counter += 5
         if counter > 600:
@@ -233,10 +244,10 @@ if __name__ == '__main__':
     parser.read(argv[1])
 
     fuel_ip = argv[2]
+    kvm_count = argv[3]
+    machines_count = argv[4]
     cluster_settings = dict(parser.items('cluster'))
 
     create_environment()
-
     deploy_environment()
-
     await_deploy()

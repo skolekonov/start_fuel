@@ -30,7 +30,7 @@ iso_path=`ls -1t iso/*.iso 2>/dev/null | head -1`
 vm_name_prefix=fuel-
 
 #
-HA_mode=false
+kvm_nodes_count=1
 
 # Master node settings
 vm_master_cpu_cores=1

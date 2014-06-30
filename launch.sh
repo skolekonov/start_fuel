@@ -42,7 +42,7 @@ sudo ./actions/slave-nodes-create-and-boot.sh $config
 check_return_code_after_command_execution $? "Create or boot worker nodes is failed"
 
 # Create and deploy environment
-python nailgun.py $environment_settings $vm_master_ip
+python nailgun.py $environment_settings $vm_master_ip $kvm_nodes_count $mashines_count
 check_return_code_after_command_execution $? "Create of deploy OpenStack environment is failed"
 
 # Save environment ip
