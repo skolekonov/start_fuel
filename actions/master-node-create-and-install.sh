@@ -22,16 +22,18 @@
 # Include the handy functions to operate VMs and track ISO installation progress
 source $1
 source functions/product.sh
+source functions/resources.sh
 
 name="${vm_name_prefix}master-$private_bridge"
+
+if [ ! -d ~/dir_for_images/ ]; then
+    echo -n "Create directory for kvm images... "
+    mkdir ~/dir_for_images/
+    echo_ok
+fi
 
 screen -dmS $name sudo virt-install --connect qemu:///system --virt-type kvm -n $name -r $vm_master_memory_mb --vcpus $vm_master_cpu_cores -f "/tmp/${name}" -s $vm_master_disk_gb -c $iso_path -b $private_bridge --vnc --noreboot
 
 wait_for_product_vm_to_install $name $1
 
 check_network_params $name $1
-
-
-# Report success
-echo
-echo "Master node has been installed."

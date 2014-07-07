@@ -24,14 +24,19 @@ source functions/vm.sh
 
 name="${vm_name_prefix}worker-$private_bridge"
 
-echo -n "Install worker nodes... "
+if [ ! -d ~/dir_for_images/ ]; then
+    echo -n "Create directory for kvm images..."
+    mkdir ~/dir_for_images/
+    echo_ok
+fi
 
 # Start KVM nodes
 
 for counter in $(eval echo {1..$kvm_nodes_count}); do
-    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "/tmp/${name}-$counter" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
+    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "`echo ~`/dir_for_images/${name}-$counter" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
     await_vm_status $name-$counter "работает"
-    echo "OK"
+    echo -n "Install worker node $name-$counter"
+    echo_ok
 done
 
 # Reboot IPMI nodes
@@ -42,8 +47,8 @@ for counter in $(eval echo {1..$mashines_count}); do
     eval user=\$${type}_user
     eval role=\$${type}_role
     eval pass=\$${type}_password
-    echo "Reboot hardware machine $host using IPMI... "
+    echo -n "Reboot hardware machine $host using IPMI... "
     sudo ipmitool -I lanplus -H $host -U $user -L $role -P $pass chassis power reset 1>/dev/null
     check_return_code_after_command_execution $? "An error occurred while reboot hardware machine"
-    echo "OK"
+    echo_ok
 done
