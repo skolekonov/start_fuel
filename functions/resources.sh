@@ -36,5 +36,5 @@ await_open_port() {
         fi
         sleep 5
     done
-    echo "OK"
+    echo_ok
 }

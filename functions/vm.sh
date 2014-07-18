@@ -16,7 +16,7 @@
 
 # This file contains the functions to manage VMs in through virsh
 
-source  functions/resources.sh
+source functions/resources.sh
 
 await_vm_status() {
     counter=0

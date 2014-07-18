@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/sh
 
 #    Copyright 2013 Mirantis, Inc.
 #
@@ -29,29 +29,8 @@ is_product_vm_operational() {
 
     is_directory=$(sudo virt-ls $name /var/log/ 2>/dev/null | grep puppet | wc -l)
     if [ $is_directory != "0" ]; then is_file=$(sudo virt-ls $name /var/log/puppet/ 2>/dev/null | grep bootstrap_admin_node.log | wc -l); else is_file="0"; fi
-    if [ $is_file != "0" ]; then result=$(sudo virt-cat $name /var/log/puppet/bootstrap_admin_node.log 2>/dev/null); else result=""; fi
-
-    # When you are launching command in a sub-shell, there are issues with IFS (internal field separator)
-    # and parsing output as a set of strings. So, we are saving original IFS, replacing it, iterating over lines,
-    # and changing it back to normal
-    #
-    # http://blog.edwards-research.com/2010/01/quick-bash-trick-looping-through-output-lines/
-
-    OIFS="${IFS}"
-    NIFS=$'\n'
-    IFS="${NIFS}"
-
-    for line in $result; do
-        IFS="${OIFS}"
-        if [[ $line == *otice:\ Finished\ catalog\ run\ in* ]]; then
-            IFS="${NIFS}"
-            echo -n "Waiting for Fuel Master install..."
-            return 0;
-        fi
-        IFS="${NIFS}"
-    done
-
-    return 1
+    if [ $is_file != "0" ]; then result=$(sudo virt-cat $name /var/log/puppet/bootstrap_admin_node.log | tail -1 2>/dev/null); else result=""; fi
+    if [[ $result == Fuel\ node\ deployment\ complete! ]]; then return 0; else return 1; fi
 }
 
 wait_for_product_vm_to_install() {
