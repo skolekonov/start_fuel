@@ -33,7 +33,7 @@ fi
 # Start KVM nodes
 
 for counter in $(eval echo {1..$kvm_nodes_count}); do
-    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores -f "`echo ~`/dir_for_images/${name}-$counter" -s $vm_slave_disk_gb --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
+    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores --disk path=`echo ~`/dir_for_images/${name}-$counter,size=$vm_slave_disk_gb,cache=writeback,bus=virtio --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
     await_vm_status $name-$counter "работает"
     echo -n "Install worker node $name-$counter"
     echo_ok
