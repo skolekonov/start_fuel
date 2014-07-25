@@ -24,16 +24,13 @@ source functions/vm.sh
 
 name="${vm_name_prefix}worker-$private_bridge"
 
-if [ ! -d ~/dir_for_images/ ]; then
-    echo -n "Create directory for kvm images..."
-    mkdir ~/dir_for_images/
-    echo_ok
-fi
-
 # Start KVM nodes
 
 for counter in $(eval echo {1..$kvm_nodes_count}); do
-    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores --disk path=`echo ~`/dir_for_images/${name}-$counter,size=$vm_slave_disk_gb,cache=writeback,bus=virtio --pxe -w bridge:$private_bridge -w bridge:$public_bridge --vnc
+    if ! [ -z "`sudo virsh vol-list --pool default | grep $name-$counter`" ]; then sudo virsh vol-delete --pool default $name-$counter.qcow2; fi
+    sudo virsh vol-create-as --name $name-$counter.qcow2 --capacity ${vm_slave_disk_gb}G --format qcow2 --allocation ${vm_slave_disk_gb}G --pool default
+
+    sudo screen -dmS $name-$counter virt-install --connect qemu:///system --virt-type kvm -n $name-$counter -r $vm_slave_memory_mb --vcpus $vm_slave_cpu_cores --disk path=/var/lib/libvirt/images/$name-$counter.qcow2,cache=writeback,bus=virtio --pxe -w bridge=$private_bridge,model=virtio -w bridge=$public_bridge,model=virtio --vnc
     await_vm_status $name-$counter "работает"
     echo -n "Install worker node $name-$counter"
     echo_ok
