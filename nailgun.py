@@ -149,7 +149,9 @@ def create_environment():
         for key, value in change_dict.items():
             net[key] = value
 
-    client.update_network(cluster_id, default_networks, all_set=True)
+    client.update_network(cluster_id,
+                          default_networks['networking_parameters'],
+                          default_networks['networks'])
 
 
 def deploy_environment():
