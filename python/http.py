@@ -13,11 +13,13 @@
 #    under the License.
 
 import json
+import logging
 import urllib2
 
 from keystoneclient.v2_0 import Client as keystoneclient
 from keystoneclient import exceptions
-from fuelweb_test import logger
+
+logger = logging.getLogger(__name__)
 
 
 class HTTPClient(object):
