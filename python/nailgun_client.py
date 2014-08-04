@@ -14,9 +14,10 @@
 
 import functools
 import json
-import logging
 
 from http import HTTPClient
+from http import logwrap
+from http import logger
 
 OPENSTACK_RELEASE_CENTOS = 'Icehouse on CentOS 6.5'
 OPENSTACK_RELEASE_UBUNTU = 'Icehouse on Ubuntu 12.04'
@@ -27,32 +28,12 @@ DEFAULT_CREDS = {'username': 'admin',
                  'tenant_name': 'admin'}
 
 
-def debug(logger):
-    def wrapper(func):
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            logger.debug(
-                "Calling: {} with args: {} {}".format(
-                    func.__name__, args, kwargs
-                )
-            )
-            result = func(*args, **kwargs)
-            logger.debug(
-                "Done: {} with result: {}".format(func.__name__, result))
-            return result
-        return wrapped
-    return wrapper
-
-
 def json_parse(func):
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
         response = func(*args, **kwargs)
         return json.loads(response.read())
     return wrapped
-
-logger = logging.getLogger(__name__)
-logwrap = debug(logger)
 
 
 class NailgunClient(object):

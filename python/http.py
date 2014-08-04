@@ -19,7 +19,39 @@ import urllib2
 from keystoneclient.v2_0 import Client as keystoneclient
 from keystoneclient import exceptions
 
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s %(filename)s:'
+                    '%(lineno)d -- %(message)s',
+                    filename=os.path.join(LOGS_DIR, 'sys_test.log'),
+                    filemode='w')
+
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s %(filename)s:'
+                              '%(lineno)d -- %(message)s')
+console.setFormatter(formatter)
+
 logger = logging.getLogger(__name__)
+logger.addHandler(console)
+
+
+def debug(logger):
+    def wrapper(func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            logger.debug(
+                "Calling: {} with args: {} {}".format(
+                    func.__name__, args, kwargs
+                )
+            )
+            result = func(*args, **kwargs)
+            logger.debug(
+                "Done: {} with result: {}".format(func.__name__, result))
+            return result
+        return wrapped
+    return wrapper
+
+logwrap = debug(logger)
 
 
 class HTTPClient(object):
