@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import functools
 import os
 import json
 import logging
@@ -52,6 +53,14 @@ def debug(logger):
             return result
         return wrapped
     return wrapper
+
+
+def json_parse(func):
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        response = func(*args, **kwargs)
+        return json.loads(response.read())
+    return wrapped
 
 logwrap = debug(logger)
 

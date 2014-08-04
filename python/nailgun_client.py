@@ -12,12 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import functools
 import json
 
 from http import HTTPClient
 from http import logwrap
 from http import logger
+from http import json_parse
 
 OPENSTACK_RELEASE_CENTOS = 'Icehouse on CentOS 6.5'
 OPENSTACK_RELEASE_UBUNTU = 'Icehouse on Ubuntu 12.04'
@@ -26,14 +26,6 @@ OPENSTACK_RELEASE = OPENSTACK_RELEASE_CENTOS
 DEFAULT_CREDS = {'username': 'admin',
                  'password': 'admin',
                  'tenant_name': 'admin'}
-
-
-def json_parse(func):
-    @functools.wraps(func)
-    def wrapped(*args, **kwargs):
-        response = func(*args, **kwargs)
-        return json.loads(response.read())
-    return wrapped
 
 
 class NailgunClient(object):
