@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import json
 import logging
 import urllib2
@@ -22,7 +23,8 @@ from keystoneclient import exceptions
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s %(filename)s:'
                     '%(lineno)d -- %(message)s',
-                    filename=os.path.join(LOGS_DIR, 'sys_test.log'),
+                    filename=os.path.join(os.path.join(os.getcwd()),
+                                          'nailgun.log'),
                     filemode='w')
 
 console = logging.StreamHandler()
