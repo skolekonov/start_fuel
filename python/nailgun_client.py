@@ -22,6 +22,11 @@ OPENSTACK_RELEASE_CENTOS = 'Icehouse on CentOS 6.5'
 OPENSTACK_RELEASE_UBUNTU = 'Icehouse on Ubuntu 12.04'
 OPENSTACK_RELEASE = OPENSTACK_RELEASE_CENTOS
 
+DEFAULT_CREDS = {'username': 'admin',
+                 'password': 'admin',
+                 'tenant_name': 'admin'}
+
+
 def debug(logger):
     def wrapper(func):
         @functools.wraps(func)
@@ -51,13 +56,17 @@ logwrap = debug(logger)
 
 
 class NailgunClient(object):
-    def __init__(self, admin_node_ip, user=None, password=None):
-        self.client = HTTPClient(url="http://{}:8000".format(admin_node_ip),
-                                 user=user, password=password)
-        logger.info(
-            'Init of client by url %s' % "http://{}:8000".format(
-                admin_node_ip))
+    def __init__(self, admin_node_ip, **kwargs):
+        url = "http://{0}:8000".format(admin_node_ip)
+        logger.info('Initiate Nailgun client with url %s', url)
+        self.keystone_url = "http://{0}:5000/v2.0".format(admin_node_ip)
+        self._client = HTTPClient(url=url, keystone_url=self.keystone_url,
+                                  credentials=DEFAULT_CREDS, **kwargs)
         super(NailgunClient, self).__init__()
+
+    @property
+    def client(self):
+        return self._client
 
     @logwrap
     def get_root(self):
@@ -83,15 +92,13 @@ class NailgunClient(object):
 
     @logwrap
     @json_parse
-    def verify_networks(self, cluster_id, networks):
+    def verify_networks(self, cluster_id):
         net_provider = self.get_cluster(cluster_id)['net_provider']
         return self.client.put(
             "/api/clusters/{}/network_configuration/{}/verify/".format(
                 cluster_id, net_provider
             ),
-            {
-                'networks': networks
-            }
+            data=self.get_networks(cluster_id)
         )
 
     @json_parse
@@ -130,12 +137,14 @@ class NailgunClient(object):
             "/api/clusters/{}/".format(cluster_id)
         )
 
+    @logwrap
     @json_parse
     def update_node(self, node_id, data):
         return self.client.put(
             "/api/nodes/{}/".format(node_id), data
         )
 
+    @logwrap
     @json_parse
     def update_nodes(self, data):
         return self.client.put(
@@ -203,7 +212,7 @@ class NailgunClient(object):
     @logwrap
     @json_parse
     def create_cluster(self, data):
-        logging.info('Before post to nailgun')
+        logger.info('Before post to nailgun')
         return self.client.post(
             "/api/clusters",
             data=data)
@@ -213,10 +222,12 @@ class NailgunClient(object):
     def get_ostf_test_sets(self, cluster_id):
         return self.client.get("/ostf/testsets/{}".format(cluster_id))
 
+    @logwrap
     @json_parse
     def get_ostf_tests(self, cluster_id):
         return self.client.get("/ostf/tests/{}".format(cluster_id))
 
+    @logwrap
     @json_parse
     def get_ostf_test_run(self, cluster_id):
         return self.client.get("/ostf/testruns/last/{}".format(cluster_id))
@@ -224,6 +235,8 @@ class NailgunClient(object):
     @logwrap
     @json_parse
     def ostf_run_tests(self, cluster_id, test_sets_list):
+        logger.info('Run OSTF tests at cluster #%s: %s',
+                    cluster_id, test_sets_list)
         data = []
         for test_set in test_sets_list:
             data.append(
@@ -255,29 +268,29 @@ class NailgunClient(object):
 
     @logwrap
     @json_parse
-    def update_network(self, cluster_id, networks=None,
-                       net_manager=None, all_set=False):
-        data = {}
-        net_provider = self.get_cluster(cluster_id)['net_provider']
+    def update_network(self, cluster_id, networking_parameters=None,
+                       networks=None):
+        nc = self.get_networks(cluster_id)
+        if networking_parameters is not None:
+            for k in networking_parameters:
+                nc["networking_parameters"][k] = networking_parameters[k]
         if networks is not None:
-            data.update({'networks': networks})
-        if net_manager is not None:
-            data.update({'net_manager': net_manager})
-        if all_set:
-            data = networks
+            nc["networks"] = networks
+
+        net_provider = self.get_cluster(cluster_id)['net_provider']
         return self.client.put(
             "/api/clusters/{}/network_configuration/{}".format(
                 cluster_id, net_provider
             ),
-            data
+            nc
         )
 
     @logwrap
     def get_cluster_id(self, name):
         for cluster in self.list_clusters():
             if cluster["name"] == name:
-                logging.info('cluster name is %s' % name)
-                logging.info('cluster id is %s' % cluster["id"])
+                logger.info('cluster name is %s' % name)
+                logger.info('cluster id is %s' % cluster["id"])
                 return cluster["id"]
 
     @logwrap
@@ -292,11 +305,11 @@ class NailgunClient(object):
     @logwrap
     def get_cluster_vlans(self, cluster_id):
         cluster_vlans = []
-        for network in self.get_networks(cluster_id)['networks']:
-            if network['vlan_start'] is not None:
-                amount = network.get('amount', 1)
-                cluster_vlans.extend(range(network['vlan_start'],
-                                           network['vlan_start'] + amount))
+        nc = self.get_networks(cluster_id)['networking_parameters']
+        vlan_start = nc["fixed_networks_vlan_start"]
+        network_amound = int(nc["fixed_networks_amount"] - 1)
+        cluster_vlans.extend([vlan_start, vlan_start + network_amound])
+
         return cluster_vlans
 
     @logwrap
@@ -345,18 +358,16 @@ class NailgunClient(object):
     @logwrap
     @json_parse
     def do_stop_reset_actions(self, cluster_id, action="stop_deployment"):
-        resp = self.client.put(
+        return self.client.put(
             "/api/clusters/{0}/{1}/".format(str(cluster_id), action))
-        logger.info('response for cluster action {0}'.format(resp))
-        return resp
 
-if __name__ == '__main__':
-    client=NailgunClient('10.20.0.2')
-    qwe=client.list_nodes()
-    print qwe
-    # config_mode="multinode"
-    # env_name = OPENSTACK_RELEASE_CENTOS
-    # release_id = client.get_release_id(release_name='Havana on CentOS 6.4')
-    # data = {"name": env_name, "release": str(release_id),
-    #         "mode": str(config_mode), "net_provider": "nova_network"}
-    # client.create_cluster(data)
+    @logwrap
+    @json_parse
+    def get_api_version(self):
+        return self.client.get("/api/version")
+
+    @logwrap
+    @json_parse
+    def run_update(self, cluster_id):
+        return self.client.put(
+            "/api/clusters/{0}/update/".format(str(cluster_id)))
