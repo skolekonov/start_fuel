@@ -198,7 +198,10 @@ def await_deploy():
         for domain_name in conn.listDefinedDomains():
             conn.lookupByName(domain_name).create()
 
-        list_notification = client.get_notifications()
+        try:
+            list_notification = client.get_notifications()
+        except urllib2.URLError:
+            list_notification = notif_count
 
         if len(list_notification) > notif_count:
 
