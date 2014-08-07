@@ -188,9 +188,9 @@ def await_deploy():
     client = fuel.NailgunClient(str(fuel_ip))
     cluster_id = client.get_cluster_id(cluster_settings['env_name'])
     conn = libvirt.open("qemu:///system")
-    log_file = open('await_deploy.log', 'w')
     notif_count = 0
     done_deploy = 0
+    list_notification = []
 
     while True:
         for domain_name in conn.listDefinedDomains():
@@ -199,12 +199,13 @@ def await_deploy():
         try:
             list_notification = client.get_notifications()
         except urllib2.URLError:
-            list_notification = notif_count
+            pass
 
         if len(list_notification) > notif_count:
-
+	    log_file = open('await_deploy.log', 'aw')
             log_file.write("{}\n{}\n".format(notif_count,
                                            list_notification[notif_count:]))
+	    log_file.close()
 
             for notification in list_notification[notif_count:]:
 
@@ -214,12 +215,8 @@ def await_deploy():
                         raise RuntimeError(notification['message'])
 
                     if notification['topic'] == 'done':
-                        done_deploy = 1
                         print notification['message']
-                        break
-
-        if done_deploy:
-            break
+			return
 
         notif_count = len(list_notification)
 
