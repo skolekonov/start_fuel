@@ -1,39 +1,23 @@
+#!/usr/bin/python
+
 """
-    This script allows to create new environment in Fuel and
-    include all descovered nodes to this environment.
-
-    How to use this script
-
-      First of all need to install requirements:
-
-        git clone https://github.com/sergeygalkin/fuel-main -b stable/4.0
-        cd fuel-main
-        sudo pip install -r requirements.txt
-
-      After that need to copy this script in fuel-main folder
-      and run:
-
-        python deploy_environment_in_fuel.py --ip_address FUEL_IP
+        python nailgun.py test_config.cfg FUEL_IP
 """
 
 from ConfigParser import SafeConfigParser
-import libvirt
 from sys import argv
 import time
 import json
 import urllib2
+from netaddr import *
 
 import python.nailgun_client as fuel
 
 
-def create_environment():
-
-    #   Connect to Fuel Main Server
+def delete_environment():
+        #   Clean Fuel cluster
 
     client = fuel.NailgunClient(str(fuel_ip))
-
-    #   Clean Fuel cluster
-
     for cluster in client.list_clusters():
         client.delete_cluster(cluster['id'])
         while True:
@@ -47,6 +31,11 @@ def create_environment():
             except Exception:
                 raise
             time.sleep(1)
+
+def create_environment():
+    #   Connect to Fuel Main Server
+
+    client = fuel.NailgunClient(str(fuel_ip))
 
     #   Create cluster
 
@@ -65,7 +54,8 @@ def create_environment():
     cluster_id = client.get_cluster_id(cluster_settings['env_name'])
     attributes = client.get_cluster_attributes(cluster_id)
 
-    settings = json.loads(cluster_settings['settings'])
+    #    settings = json.loads(cluster_settings['settings'])
+    settings = generate_components_config()
 
     for option in settings:
         section = False
@@ -96,49 +86,42 @@ def create_environment():
     while True:
 
         actual_kvm_count = len([k for k in client.list_nodes()
-                    if not k['cluster'] and k['online']
-            and k['status'] == 'discover' and k['manufacturer'] == 'KVM'])
+                                if not k['cluster'] and k['online']
+                                   and k['status'] == 'discover'])
 
-        actual_machines_count = len([k for k in client.list_nodes()
-                    if not k['cluster'] and k['online']
-            and k['status'] == 'discover'
-        and k['manufacturer'] == 'Supermicro'])
-
-        if actual_kvm_count >= int(kvm_count) \
-            and actual_machines_count >= int(machines_count):
+        if actual_kvm_count >= int(kvm_count):
             break
         counter += 5
         if counter > 600:
             raise RuntimeError
         time.sleep(5)
 
-    #   Add all available nodes to cluster
+        #   Add all available nodes to cluster
 
-    for node_name, params in json.loads(cluster_settings['node_roles']).items():
-
+    #    for node_name, params in json.loads(cluster_settings['node_roles']).items():
+    for node_name, params in json.loads(generate_nodes_config()).items():
         node = next(k for k in client.list_nodes()
-                    if k['manufacturer'] == params['manufacturer']
-        and not k['cluster'] and k['online'])
-
+                    if not k['cluster'] and k['online'])
         data = {"cluster_id": str(cluster_id),
                 "pending_roles": params['roles'],
                 "pending_addition": True,
                 "name": node_name,
-                }
-
+        }
         client.update_node(node['id'], data)
 
     #   Move networks on interfaces
 
     for node in client.list_cluster_nodes(cluster_id):
-        networks_dict = json.loads(cluster_settings['interfaces'])
+#        networks_dict = json.loads(cluster_settings['interfaces'])
+        networks_dict = generate_interfaces_config()
         update_node_networks(client, node['id'], networks_dict)
 
     #   Update network
 
     default_networks = client.get_networks(cluster_id)
 
-    networks = json.loads(cluster_settings['networks'])
+#    networks = json.loads(cluster_settings['networks'])
+    networks = generate_network_config()
 
     change_dict = networks.get('networking_parameters', {})
     for key, value in change_dict.items():
@@ -162,11 +145,9 @@ def deploy_environment():
 
 def update_node_networks(client, node_id, interfaces_dict, raw_data=None):
 
-    # fuelweb_admin is always on eth0
-
-    interfaces_dict['eth0'] = interfaces_dict.get('eth0', [])
-    if 'fuelweb_admin' not in interfaces_dict['eth0']:
-        interfaces_dict['eth0'].append('fuelweb_admin')
+#    interfaces_dict['eth0'] = interfaces_dict.get('eth0', [])
+#    if 'fuelweb_admin' not in interfaces_dict['eth0']:
+#        interfaces_dict['eth0'].append('fuelweb_admin')
 
     interfaces = client.get_node_interfaces(node_id)
 
@@ -189,25 +170,21 @@ def update_node_networks(client, node_id, interfaces_dict, raw_data=None):
 def await_deploy():
     client = fuel.NailgunClient(str(fuel_ip))
     cluster_id = client.get_cluster_id(cluster_settings['env_name'])
-    conn = libvirt.open("qemu:///system")
     notif_count = 0
     done_deploy = 0
     list_notification = []
 
     while True:
-        for domain_name in conn.listDefinedDomains():
-            conn.lookupByName(domain_name).create()
-
         try:
             list_notification = client.get_notifications()
         except urllib2.URLError:
             pass
 
         if len(list_notification) > notif_count:
-	    log_file = open('await_deploy.log', 'aw')
+            log_file = open('await_deploy.log', 'aw')
             log_file.write("{}\n{}\n".format(notif_count,
-                                           list_notification[notif_count:]))
-	    log_file.close()
+                                             list_notification[notif_count:]))
+            log_file.close()
 
             for notification in list_notification[notif_count:]:
 
@@ -218,7 +195,7 @@ def await_deploy():
 
                     if notification['topic'] == 'done':
                         print notification['message']
-			return
+                        return
 
         notif_count = len(list_notification)
 
@@ -226,7 +203,6 @@ def await_deploy():
 
 
 def return_controller_ip(config, fuel_ip):
-
     parser = SafeConfigParser()
     parser.read(config)
 
@@ -240,16 +216,113 @@ def return_controller_ip(config, fuel_ip):
     print [word for word in notification[0][
         'message'].split() if word.startswith('http://')][0][7:-1]
 
-if __name__ == '__main__':
 
+def generate_nodes_config():
+    controller = ["controller"]
+    compute = ["compute"]
+    ceph_controller = int(cluster_settings.get('ceph_controller'))
+    ceph_compute = int(cluster_settings.get('ceph_compute'))
+    d = {}
+    ceph = False
+    cnt_count = int(cluster_settings.get('controller_count'))
+    cmp_count = int(cluster_settings.get('compute_count'))
+
+    if cluster_settings.get('ceilometer', 'false') == 'true':
+        controller.append("mongo")
+    for option in cluster_settings.viewkeys():
+        if "ceph" in option:
+            if cluster_settings.get(option) == "true":
+                ceph = True
+
+    for i in xrange(cnt_count):
+        s = "controller_%d" % i
+        d[s] = {"manufacturer": "QEMU"}
+        d[s]["roles"] = controller
+    for i in xrange(cmp_count):
+        s = "compute_%d" % i
+        d[s] = {"manufacturer": "QEMU"}
+        d[s]["roles"] = compute
+
+    if ceph:
+        for i in xrange(ceph_compute):
+            s = "compute_%d" % i
+            d[s]["roles"] = compute + ["ceph-osd"]
+        for i in xrange(ceph_controller):
+            s = "controller_%d" % i
+            d[s]["roles"] = controller + ["ceph-osd"]
+
+    if cluster_settings.get('volumes_lvm') == "true":
+        controller.append("cinder")
+
+    return str(json.dumps(d))
+
+def generate_interfaces_config():
+    interfaces = dict(parser.items('interfaces'))
+    netmap = {}
+    for key in interfaces.keys():
+        if interfaces[key] != "":
+            netmap["%s" % key] = interfaces[key].split(',')
+    return netmap
+
+def generate_network_config():
+    networks = {}
+    cidr = cluster_settings.get("cidr")
+    mask = IPNetwork(cidr).netmask
+    net_size = int(IPNetwork(cidr).prefixlen)
+    public_start = cluster_settings.get("public_range").split('-')[0]
+    public_end = cluster_settings.get("public_range").split('-')[1]
+    floating_start = cluster_settings.get("floating_range").split('-')[0]
+    floating_end = cluster_settings.get("floating_range").split('-')[1]
+
+    networks["public"] = {"network_size": net_size,
+                          "netmask": "%s" % mask,
+                          "ip_ranges": [["%s" % public_start, "%s" % public_end]],
+                          "cidr": "%s" % cidr,
+                          "gateway": cluster_settings.get("gateway")}
+    networks["management"] = {"vlan_start": int(cluster_settings.get("management_vlan"))}
+    networks["storage"] = {"vlan_start": int(cluster_settings.get("storage_vlan"))}
+    networks["networking_parameters"] = {"floating_ranges": [["%s" % floating_start, "%s" % floating_end]]}
+
+    if cluster_settings.get("net_segment_type") == "vlan":
+        floating_vlan_start = cluster_settings.get("floating_vlan_range").split('-')[0]
+        floating_vlan_end = cluster_settings.get("floating_vlan_range").split('-')[1]
+        networks["networking_parameters"]["vlan_range"] = [int(floating_vlan_start), int(floating_vlan_end)]
+
+    if cluster_settings.get("net_provider") == "nova_network":
+        nn_floating_vlan = cluster_settings.get("nn_floating_vlan")
+#        networks["fixed"] = {"vlan_start": int(cluster_settings.get("fixed_vlan"))}
+        networks["networking_parameters"]["fixed_networks_vlan_start"] = int(nn_floating_vlan)
+
+    return networks
+
+def generate_components_config():
+    settings = {}
+    settings["sahara"] = s2b(cluster_settings.get('sahara', 'false'))
+    settings["murano"] = s2b(cluster_settings.get('murano', 'false'))
+    settings["ceilometer"] = s2b(cluster_settings.get('ceilometer', 'false'))
+    settings["volumes_lvm"] = s2b(cluster_settings.get('volumes_lvm', 'false'))
+    settings["volumes_ceph"] = s2b(cluster_settings.get('volumes_ceph', 'false'))
+    settings["images_ceph"] = s2b(cluster_settings.get('images_ceph', 'false'))
+    settings["ephemeral_ceph"] = s2b(cluster_settings.get('ephemeral_ceph', 'false'))
+    settings["osd_pool_size"] = cluster_settings.get('osd_pool_size', 1)
+    return settings
+
+
+def s2b(v):
+    return v.lower() in ("yes", "true", "t", "1")
+
+
+if __name__ == '__main__':
     parser = SafeConfigParser()
     parser.read(argv[1])
-
-    fuel_ip = argv[2]
-    kvm_count = argv[3]
-    machines_count = argv[4]
     cluster_settings = dict(parser.items('cluster'))
+    fuel_ip = argv[2]
+    kvm_count = int(cluster_settings.get('node_count'))
 
+    delete_environment()
     create_environment()
     deploy_environment()
     await_deploy()
+#    print generate_network_config()
+#    print generate_interfaces_config()
+#    print generate_nodes_config()
