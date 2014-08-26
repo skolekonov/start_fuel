@@ -1,7 +1,15 @@
 #!/usr/bin/python
 
 """
-        python nailgun.py test_config.cfg FUEL_IP
+   Usage: python nailgun.py test_config.cfg FUEL_IP
+
+   Requirements installation:
+     - sudo apt-get install -y python-dev python-pip libxslt-dev gcc make
+     - sudo pip install pip -U
+     - sudo pip install netaddr python-keystoneclient
+
+   Authors: Vadim Rovachev   (vrovachev@mirantis.com)
+            Sergey Kolekonov (skolekonov@mirantis.com)
 """
 
 from ConfigParser import SafeConfigParser
@@ -10,12 +18,13 @@ import time
 import json
 import urllib2
 from netaddr import *
+import pprint
 
 import python.nailgun_client as fuel
 
 
 def delete_environment():
-        #   Clean Fuel cluster
+    #   Clean Fuel cluster
 
     client = fuel.NailgunClient(str(fuel_ip))
     for cluster in client.list_clusters():
@@ -323,6 +332,3 @@ if __name__ == '__main__':
     create_environment()
     deploy_environment()
     await_deploy()
-#    print generate_network_config()
-#    print generate_interfaces_config()
-#    print generate_nodes_config()
